@@ -101,7 +101,7 @@ WHERE RC.country <> (
                         WHERE RCin.release = RC.release AND RCin.country = C.id
                         ORDER BY (RCin.year, RCin.month, RCin.day) LIMIT 1
                     )
-ORDER BY (RC.year, RC.month, RC.day, RC.country);
+ORDER BY RC.year, RC.month, RC.day, RC.country;
 
 -- Optimized 8th
 
@@ -112,7 +112,8 @@ CREATE VIEW ReleaseCountryOrdered AS
 EXPLAIN ANALYSE
 SELECT RC.release, RC.country
 FROM ReleaseCountryOrdered RC
-WHERE RC.release_order > 1;
+WHERE RC.release_order > 1
+ORDER BY RC.year, RC.month, RC.day, country;
 
 
 -- 9th
