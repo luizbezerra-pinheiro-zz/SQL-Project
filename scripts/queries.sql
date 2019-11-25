@@ -160,3 +160,14 @@ FROM ArtistsOrdered P0
 INNER JOIN country c on P0.area = c.id
 WHERE P0.type = 1
 ORDER BY nb, nb_global;
+
+
+------------------- 3th Assignment ------------------
+
+SELECT A.id, A.name
+FROM artist A, release_has_artist RhA, release_country RC, country C
+WHERE RhA.artist = A.id AND
+      RhA.release = RC.release AND
+      RC.country = C.id AND
+      C.name = 'Canada' AND
+      RC.year > 1991;
