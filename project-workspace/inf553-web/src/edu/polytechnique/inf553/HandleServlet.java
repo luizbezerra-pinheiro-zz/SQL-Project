@@ -17,22 +17,23 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
+
 /**
  * Servlet implementation class QueryServlet
  */
 @WebServlet(
-		urlPatterns = { "/QueryServlet" }, 
+		urlPatterns = { "/HandleServlet" }, 
 		initParams = { 
 				@WebInitParam(name = "countryname", value = "", description = "Country name"), 
 				@WebInitParam(name = "year", value = "", description = "Borning year")
 		})
-public class QueryServlet extends HttpServlet {
+public class HandleServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
     /**
      * @see HttpServlet#HttpServlet()
      */
-    public QueryServlet() {
+    public HandleServlet() {
         super();
         // TODO Auto-generated constructor stub
     }
@@ -48,56 +49,51 @@ public class QueryServlet extends HttpServlet {
 		
 		// First we get the parameters from the URL
 		
-		String countryname = request.getParameter("countryname");
-		String string_year = request.getParameter("year");
-		if (countryname==null || string_year == null) {
+		String artistname = request.getParameter("artistname");
+		if (artistname==null) {
 			throw new ServletException("Expected countryname and year parameters but did not get both, URL malformed"); 
 		}
-		int year = 0;
-		try {
-			year = Integer.parseInt(string_year);
-		} catch(NumberFormatException e) {
-			System.out.println("Expected an integer, got " + year);
-		}
-		if (year > 2050) {
-			throw new IllegalStateException("Expected year smaller than 2050, got " + year);
-		}
-				
-		// Then we try to connect to the DB and do the queries
 		
-		String query = "WITH validPubAtCountry AS ( "
-				+ " SELECT rha.artist "
-				+ " FROM release_country rc, release_has_artist rha, country c "
-				+ " WHERE c.id = rc.country AND c.name = \'"+ countryname +"\' AND rc.year > " + year + " AND rha.release = rc.release "
-						+ ")"
-				+ " SELECT A.id, A.name, count(1) AS cc " + 
-				" FROM validPubAtCountry r, artist A " + 
-				" WHERE r.artist = A.id " + 
-				" GROUP BY (A.id) " + 
-				" ORDER BY A.id; ";
+		String query = "SELECT A.gender, A.type, A.syear, " + 
+				"    CASE" + 
+				"        WHEN A.area is null THEN null " + 
+				"        WHEN A.area is not null THEN " + 
+				"            ( " + 
+				"                SELECT C.name " + 
+				"                FROM country C " + 
+				"                WHERE C.id = A.area" + 
+				"            ) " + 
+				"    END as country " + 
+				" FROM artist A " + 
+				" WHERE A.name = \'"+ artistname+"\';";
 		
 		try (
 				Connection con = DataBaseConnection.connect_db();
 				PreparedStatement pst = con.prepareStatement(query);
 				ResultSet rs = pst.executeQuery()
 			){
-				out.append("<style type=\"text/css\">" + 
-						"        td { text-align: center; }" + 
-						"    </style>");
-				out.append("<table class=\"output\">");
-				out.append("<tr><th>Artist Id</th><th>Artist Name</th><th>Count</th></tr>");
-				while (rs.next()) {
-					out.append("<tr>");
-					out.append("<td>" + rs.getInt("id") + "</td>");
-					out.append("<td> <a href=\"http://localhost:8080/inf553-web/HandleServlet?artistname=" + rs.getString("name")+"\" >" + rs.getString("name") + "</a></td>");
-					out.append("<td>" + rs.getString("cc")+ "</td>");
-					out.append("</tr>");
-	                System.out.print(rs.getInt("id"));
-	                System.out.print(": ");
-	                System.out.println(rs.getString("name"));
-	            }
-				out.append("</table>");
-
+				rs.next();
+				//[Mr./Mrs.] <ARTIST NAME> born in <YEAR>, <COUNTRY_NAME>
+				Integer gender = rs.getInt("gender");
+				Integer born_year = rs.getInt("syear");
+				Integer type = rs.getInt("type");
+				String country = rs.getString("country");
+				String message = "";
+				if (gender == 1) {
+					message += "Mr. ";
+				}
+				else if(gender == 2) {
+					message += "Mrs. ";
+				}
+				message += artistname;
+				if (type == 1 && born_year != null) {
+					message += " born in "+ born_year + "";
+				}
+				if (country != null) {
+					message += ", " + country + "";
+				}
+				out.append("<div> "+ message + " </div>");
+				
 			} 
 		catch (SQLException ex) {
             Logger lgr = Logger.getLogger(
