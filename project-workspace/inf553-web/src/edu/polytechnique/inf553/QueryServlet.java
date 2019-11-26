@@ -75,16 +75,18 @@ public class QueryServlet extends HttpServlet {
 				PreparedStatement pst = con.prepareStatement(query);
 				ResultSet rs = pst.executeQuery()
 			){
-				out.append("<div class=\"output\">");
+				out.append("<table class=\"output\">");
+				out.append("<tr><th>Artist Id</th><th>Artist Name</th><tr>");
 				while (rs.next()) {
-					out.append("<p>");
-					out.append(Integer.toString(rs.getInt("id")) + ": " + rs.getString("name"));
-					out.append("</p>");
+					out.append("<tr>");
+					out.append("<td style=\"text-align: -internal-center\">"+ rs.getInt("id") + "</td>");
+					out.append("<td style=\"text-align: -internal-center\">"+ rs.getString("name") + "</td>");
+					out.append("</tr>");
 	                System.out.print(rs.getInt("id"));
 	                System.out.print(": ");
 	                System.out.println(rs.getString("name"));
 	            }
-				out.append("</div>");
+				out.append("</table>");
 
 			} 
 		catch (SQLException ex) {
